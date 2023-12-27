@@ -35,12 +35,16 @@ class PrototypesController < ApplicationController
 
   def edit
     @prototype = Prototype.find(params[:id])
+
+    unless current_user == @prototype.user
+      redirect_to root_path, alert: '他のユーザーのプロトタイプは編集できません。'
+    end
   end
 
   def update
     @prototype = Prototype.find(params[:id])
     if @prototype.update(prototype_params)
-      redirect_to root_path, notice: 'プロトタイプが更新されました。'
+      redirect_to @prototype, notice: 'プロトタイプが更新されました。'
     else
       flash[:alert] = '更新に失敗しました。エラーを確認してください。'
       render :edit
@@ -51,10 +55,15 @@ class PrototypesController < ApplicationController
   def prototype_params
     params.require(:prototype).permit(:title, :catch_copy, :concept, :image).merge(user_id: current_user.id)
   end
-end
 
-def move_to_index
-  unless user_signed_in?
-    redirect_to action: :index
+  def set_prototype
+    @prototype = Prototype.find(params[:id])
+  end
+
+  def move_to_index
+    unless user_signed_in?
+      redirect_to action: :index
+    end
   end
 end
+
